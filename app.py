@@ -43,8 +43,9 @@ def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
         avg = avg_sales[avg_sales['Referencia'] == ref]['Qtd média mes'].values[0]
         threshold_value = avg + threshold_diff
         months_below = monthly_sales[(monthly_sales['Referencia'] == ref) & (monthly_sales['Qtd Vendidas'] < threshold_value)]
-        below_threshold.append(", ".join(months_below['Mes'].astype(str).tolist()))
-        total_below_threshold.append(months_below['Qtd Vendidas'].sum())
+        month_sales = {row['Mes']: row['Qtd Vendidas'] for _, row in months_below.iterrows()}
+        below_threshold.append(", ".join(f"{month}: {sales}" for month, sales in month_sales.items()))
+        total_below_threshold.append(sum(month_sales.values()))
     return below_threshold, total_below_threshold
 
 # Interface Streamlit
