@@ -16,7 +16,6 @@ def load_and_combine_data(zip_file_path):
                         'Ref': 'Referencia',
                         'Quantidade': 'Qtd Vendidas',
                         'DataDoc': 'Data da venda'
-                        #'Zona': 'Zona'
                     }
                     # Ajustar colunas relevantes conforme disponível
                     relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Zona'] if col in df.columns]
@@ -32,12 +31,12 @@ def load_and_combine_data(zip_file_path):
     combined_data = pd.concat(data_frames, ignore_index=True)
     return combined_data
 
-# Função para identificar meses com vendas inferiores à média menos 1 unidade
-def get_months_below_threshold(monthly_sales, avg_sales):
+# Função para identificar meses com vendas inferiores à média menos um valor negativo
+def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
     below_threshold = []
     for ref in avg_sales['Referencia']:
         avg = avg_sales[avg_sales['Referencia'] == ref]['Qtd média mes'].values[0]
-        threshold_value = avg - 1
+        threshold_value = avg + threshold_diff
         months_below = monthly_sales[(monthly_sales['Referencia'] == ref) & (monthly_sales['Qtd Vendidas'] < threshold_value)]
         below_threshold.append(", ".join(months_below['Mes'].astype(str).tolist()))
     return below_threshold
@@ -61,6 +60,9 @@ if uploaded_file is not None:
     marcas = st.multiselect("Marcas", options=data['Marca'].unique().tolist())
     familias = st.multiselect("Famílias", options=data['Familia'].unique().tolist())
     zonas = st.multiselect("Zonas", options=data['Zona'].unique().tolist())
+
+    # Input para o valor de diferença em relação à média
+    threshold_diff = st.number_input("Diferença da média (sempre negativa)", value=-1, step=1)
 
     # Convertendo datas para datetime64[ns]
     start_date = pd.to_datetime(start_date)
@@ -111,8 +113,8 @@ if uploaded_file is not None:
         total_sales.columns = ['Referencia', 'Vendas totais']
         total_sales['Qtd média mes'] = total_sales['Vendas totais'] / num_months
 
-        # Identificar meses com vendas inferiores à média menos 1 unidade
-        total_sales['Meses < média - 1 unidade'] = get_months_below_threshold(monthly_sales, total_sales)
+        # Identificar meses com vendas inferiores à média menos o valor negativo
+        total_sales['Meses < média - diferença'] = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
 
         # Exibir o resultado completo
         st.write("Média mensal de vendas por referência e vendas totais:")
