@@ -16,7 +16,7 @@ def load_and_combine_data(zip_file_path):
                         'Ref': 'Referencia',
                         'Quantidade': 'Qtd Vendidas',
                         'DataDoc': 'Data da venda',
-                        'Cliente': 'Zona'
+                        'Zona': 'Zona'
                     }
                     # Ajustar colunas relevantes conforme disponível
                     relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Cliente'] if col in df.columns]
