@@ -15,8 +15,8 @@ def load_and_combine_data(zip_file_path):
                     rename_dict = {
                         'Ref': 'Referencia',
                         'Quantidade': 'Qtd Vendidas',
-                        'DataDoc': 'Data da venda',
-                        'Zona': 'Zona'
+                        'DataDoc': 'Data da venda'
+                        #'Zona': 'Zona'
                     }
                     # Ajustar colunas relevantes conforme disponível
                     relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Cliente'] if col in df.columns]
