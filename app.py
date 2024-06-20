@@ -62,6 +62,10 @@ if uploaded_file is not None:
     familias = st.multiselect("Famílias", options=data['Familia'].unique().tolist())
     zonas = st.multiselect("Zonas", options=data['Zona'].unique().tolist())
 
+    # Convertendo datas para datetime64[ns]
+    start_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
+
     # Número de meses no período de análise
     num_months = ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month) + 1
 
