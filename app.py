@@ -131,9 +131,9 @@ if uploaded_file is not None:
 
             # Identificar meses com vendas inferiores à média menos o valor negativo e calcular o total de vendas nesses meses
             months_below_threshold, total_below_threshold, count_below_threshold = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
-            total_sales['Meses < média - diferença'] = count_below_threshold
+            total_sales['Qtd. Meses média < Vendas'] = count_below_threshold
             for month, sales in months_below_threshold.items():
-                total_sales[f'Vendas {month} < média - diferença'] = sales
+                total_sales[f'Vendas {month}'] = sales
             total_sales['Total vendas meses < média - diferença'] = total_below_threshold
 
             # Exibir o resultado completo
