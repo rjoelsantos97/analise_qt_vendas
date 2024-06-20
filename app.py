@@ -19,7 +19,7 @@ def load_and_combine_data(zip_file_path):
                         #'Zona': 'Zona'
                     }
                     # Ajustar colunas relevantes conforme disponível
-                    relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Cliente'] if col in df.columns]
+                    relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Zona'] if col in df.columns]
                     df = df[relevant_columns]
                     df.rename(columns=rename_dict, inplace=True)
                     # Converter a coluna de data para datetime se existir
