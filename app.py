@@ -37,15 +37,20 @@ def load_and_combine_data(zip_file_path):
 
 # Função para identificar meses com vendas inferiores à média menos um valor negativo e calcular o total de vendas nesses meses
 def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
-    below_threshold = []
+    months = monthly_sales['Mes'].unique()
+    below_threshold = {month: [] for month in months}
     total_below_threshold = []
     for ref in avg_sales['Referencia']:
         avg = avg_sales[avg_sales['Referencia'] == ref]['Qtd média mes'].values[0]
         threshold_value = avg + threshold_diff
         months_below = monthly_sales[(monthly_sales['Referencia'] == ref) & (monthly_sales['Qtd Vendidas'] < threshold_value)]
-        month_sales = {row['Mes']: row['Qtd Vendidas'] for _, row in months_below.iterrows()}
-        below_threshold.append(", ".join(f"{month}: {sales}" for month, sales in month_sales.items()))
-        total_below_threshold.append(sum(month_sales.values()))
+        for month in months:
+            if month in months_below['Mes'].values:
+                sales = months_below[months_below['Mes'] == month]['Qtd Vendidas'].sum()
+                below_threshold[month].append(sales)
+            else:
+                below_threshold[month].append(0)
+        total_below_threshold.append(months_below['Qtd Vendidas'].sum())
     return below_threshold, total_below_threshold
 
 # Interface Streamlit
@@ -124,7 +129,8 @@ if uploaded_file is not None:
 
             # Identificar meses com vendas inferiores à média menos o valor negativo e calcular o total de vendas nesses meses
             months_below_threshold, total_below_threshold = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
-            total_sales['Meses < média - diferença'] = months_below_threshold
+            for month, sales in months_below_threshold.items():
+                total_sales[f'Vendas {month} < média - diferença'] = sales
             total_sales['Total vendas meses < média - diferença'] = total_below_threshold
 
             # Exibir o resultado completo
