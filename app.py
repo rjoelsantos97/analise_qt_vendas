@@ -40,6 +40,7 @@ def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
     months = monthly_sales['Mes'].unique()
     below_threshold = {month: [] for month in months}
     total_below_threshold = []
+    count_below_threshold = []
     for ref in avg_sales['Referencia']:
         avg = avg_sales[avg_sales['Referencia'] == ref]['Qtd média mes'].values[0]
         threshold_value = avg + threshold_diff
@@ -51,7 +52,8 @@ def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
             else:
                 below_threshold[month].append(0)
         total_below_threshold.append(months_below['Qtd Vendidas'].sum())
-    return below_threshold, total_below_threshold
+        count_below_threshold.append(len(months_below))
+    return below_threshold, total_below_threshold, count_below_threshold
 
 # Interface Streamlit
 st.title("Análise de Vendas")
@@ -128,7 +130,8 @@ if uploaded_file is not None:
             total_sales['Qtd média mes'] = total_sales['Vendas totais'] / num_months
 
             # Identificar meses com vendas inferiores à média menos o valor negativo e calcular o total de vendas nesses meses
-            months_below_threshold, total_below_threshold = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
+            months_below_threshold, total_below_threshold, count_below_threshold = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
+            total_sales['Meses < média - diferença'] = count_below_threshold
             for month, sales in months_below_threshold.items():
                 total_sales[f'Vendas {month} < média - diferença'] = sales
             total_sales['Total vendas meses < média - diferença'] = total_below_threshold
