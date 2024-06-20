@@ -35,15 +35,17 @@ def load_and_combine_data(zip_file_path):
     combined_data = pd.concat(data_frames, ignore_index=True)
     return combined_data
 
-# Função para identificar meses com vendas inferiores à média menos um valor negativo
+# Função para identificar meses com vendas inferiores à média menos um valor negativo e calcular o total de vendas nesses meses
 def get_months_below_threshold(monthly_sales, avg_sales, threshold_diff):
     below_threshold = []
+    total_below_threshold = []
     for ref in avg_sales['Referencia']:
         avg = avg_sales[avg_sales['Referencia'] == ref]['Qtd média mes'].values[0]
         threshold_value = avg + threshold_diff
         months_below = monthly_sales[(monthly_sales['Referencia'] == ref) & (monthly_sales['Qtd Vendidas'] < threshold_value)]
         below_threshold.append(", ".join(months_below['Mes'].astype(str).tolist()))
-    return below_threshold
+        total_below_threshold.append(months_below['Qtd Vendidas'].sum())
+    return below_threshold, total_below_threshold
 
 # Interface Streamlit
 st.title("Análise de Vendas")
@@ -119,8 +121,10 @@ if uploaded_file is not None:
             total_sales.columns = ['Referencia', 'Vendas totais']
             total_sales['Qtd média mes'] = total_sales['Vendas totais'] / num_months
 
-            # Identificar meses com vendas inferiores à média menos o valor negativo
-            total_sales['Meses < média - diferença'] = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
+            # Identificar meses com vendas inferiores à média menos o valor negativo e calcular o total de vendas nesses meses
+            months_below_threshold, total_below_threshold = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
+            total_sales['Meses < média - diferença'] = months_below_threshold
+            total_sales['Total vendas meses < média - diferença'] = total_below_threshold
 
             # Exibir o resultado completo
             st.write("Média mensal de vendas por referência e vendas totais:")
