@@ -47,25 +47,25 @@ st.title("Análise de Vendas")
 # Upload do arquivo ZIP
 uploaded_file = st.file_uploader("Carregar arquivo ZIP contendo os dados de vendas", type="zip")
 
-# Parâmetros de Filtro
-start_date = st.sidebar.date_input("Data de início", value=pd.to_datetime('2023-07-01'))
-end_date = st.sidebar.date_input("Data de término", value=pd.to_datetime('2023-12-31'))
-
 # Verifica se o arquivo foi carregado
 if uploaded_file is not None:
     # Carregar os dados
     data = load_and_combine_data(uploaded_file)
     
-    # Parâmetros de Filtro adicionais
-    marcas = st.sidebar.multiselect("Marcas", options=data['Marca'].unique().tolist())
-    familias = st.sidebar.multiselect("Famílias", options=data['Familia'].unique().tolist())
-    zonas = st.sidebar.multiselect("Zonas", options=data['Zona'].unique().tolist())
+    # Formulário para parâmetros de entrada
+    with st.sidebar.form("parâmetros_filtro"):
+        st.write("Parâmetros de Filtro")
+        start_date = st.date_input("Data de início", value=pd.to_datetime('2023-07-01'))
+        end_date = st.date_input("Data de término", value=pd.to_datetime('2023-12-31'))
+        marcas = st.multiselect("Marcas", options=data['Marca'].unique().tolist())
+        familias = st.multiselect("Famílias", options=data['Familia'].unique().tolist())
+        zonas = st.multiselect("Zonas", options=data['Zona'].unique().tolist())
+        threshold_diff = st.number_input("Diferença da média (sempre negativa)", value=-1, step=1)
+        
+        # Botão para iniciar a análise
+        submit_button = st.form_submit_button(label="Iniciar Análise")
 
-    # Input para o valor de diferença em relação à média
-    threshold_diff = st.sidebar.number_input("Diferença da média (sempre negativa)", value=-1, step=1)
-
-    # Botão para iniciar a análise
-    if st.sidebar.button("Iniciar Análise"):
+    if submit_button:
         # Convertendo datas para datetime64[ns]
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
