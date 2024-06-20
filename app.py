@@ -46,85 +46,87 @@ st.title("Análise de Vendas")
 
 # Upload do arquivo ZIP
 uploaded_file = st.file_uploader("Carregar arquivo ZIP contendo os dados de vendas", type="zip")
+
+# Parâmetros de Filtro
+start_date = st.sidebar.date_input("Data de início", value=pd.to_datetime('2023-07-01'))
+end_date = st.sidebar.date_input("Data de término", value=pd.to_datetime('2023-12-31'))
+
+# Verifica se o arquivo foi carregado
 if uploaded_file is not None:
     # Carregar os dados
     data = load_and_combine_data(uploaded_file)
-
-    # Verificar a presença de dados no dataset completo
-    st.write(f"Total de registros no dataset completo: {len(data)}")
-
-    # Parâmetros de Filtro
-    start_date = st.date_input("Data de início", value=pd.to_datetime('2023-07-01'))
-    end_date = st.date_input("Data de término", value=pd.to_datetime('2023-12-31'))
-
-    marcas = st.multiselect("Marcas", options=data['Marca'].unique().tolist())
-    familias = st.multiselect("Famílias", options=data['Familia'].unique().tolist())
-    zonas = st.multiselect("Zonas", options=data['Zona'].unique().tolist())
+    
+    # Parâmetros de Filtro adicionais
+    marcas = st.sidebar.multiselect("Marcas", options=data['Marca'].unique().tolist())
+    familias = st.sidebar.multiselect("Famílias", options=data['Familia'].unique().tolist())
+    zonas = st.sidebar.multiselect("Zonas", options=data['Zona'].unique().tolist())
 
     # Input para o valor de diferença em relação à média
-    threshold_diff = st.number_input("Diferença da média (sempre negativa)", value=-1, step=1)
+    threshold_diff = st.sidebar.number_input("Diferença da média (sempre negativa)", value=-1, step=1)
 
-    # Convertendo datas para datetime64[ns]
-    start_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)
+    # Botão para iniciar a análise
+    if st.sidebar.button("Iniciar Análise"):
+        # Convertendo datas para datetime64[ns]
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
 
-    # Número de meses no período de análise
-    num_months = ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month) + 1
+        # Número de meses no período de análise
+        num_months = ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month) + 1
 
-    # Filtrar os dados com base nas seleções de data
-    filtered_data = data[
-        (data['Data da venda'] >= start_date) &
-        (data['Data da venda'] <= end_date)
-    ]
+        # Filtrar os dados com base nas seleções de data
+        filtered_data = data[
+            (data['Data da venda'] >= start_date) &
+            (data['Data da venda'] <= end_date)
+        ]
 
-    # Verificar se há registros após filtragem por data
-    st.write(f"Total de registros após filtragem por data: {len(filtered_data)}")
+        # Verificar se há registros após filtragem por data
+        st.write(f"Total de registros após filtragem por data: {len(filtered_data)}")
 
-    if 'Marca' in filtered_data.columns and marcas:
-        filtered_data = filtered_data[filtered_data['Marca'].isin(marcas)]
+        if 'Marca' in filtered_data.columns and marcas:
+            filtered_data = filtered_data[filtered_data['Marca'].isin(marcas)]
 
-    # Verificar se há registros após filtragem por marcas
-    st.write(f"Total de registros após filtragem por marcas: {len(filtered_data)}")
+        # Verificar se há registros após filtragem por marcas
+        st.write(f"Total de registros após filtragem por marcas: {len(filtered_data)}")
 
-    if 'Familia' in filtered_data.columns and familias:
-        filtered_data = filtered_data[filtered_data['Familia'].isin(familias)]
+        if 'Familia' in filtered_data.columns and familias:
+            filtered_data = filtered_data[filtered_data['Familia'].isin(familias)]
 
-    # Verificar se há registros após filtragem por famílias
-    st.write(f"Total de registros após filtragem por famílias: {len(filtered_data)}")
+        # Verificar se há registros após filtragem por famílias
+        st.write(f"Total de registros após filtragem por famílias: {len(filtered_data)}")
 
-    if 'Zona' in filtered_data.columns and zonas:
-        filtered_data = filtered_data[filtered_data['Zona'].isin(zonas)]
+        if 'Zona' in filtered_data.columns and zonas:
+            filtered_data = filtered_data[filtered_data['Zona'].isin(zonas)]
 
-    # Verificar se há registros após filtragem por zonas
-    st.write(f"Total de registros após filtragem por zonas: {len(filtered_data)}")
+        # Verificar se há registros após filtragem por zonas
+        st.write(f"Total de registros após filtragem por zonas: {len(filtered_data)}")
 
-    # Verificação se há registros após aplicação de todos os filtros
-    if filtered_data.empty:
-        st.write("Não há registros após aplicar todos os filtros.")
-    else:
-        st.write(f"Dados filtrados finais: {len(filtered_data)} registros encontrados.")
+        # Verificação se há registros após aplicação de todos os filtros
+        if filtered_data.empty:
+            st.write("Não há registros após aplicar todos os filtros.")
+        else:
+            st.write(f"Dados filtrados finais: {len(filtered_data)} registros encontrados.")
 
-        # Agrupar os dados por mês e referência
-        filtered_data['Mes'] = filtered_data['Data da venda'].dt.to_period('M')
-        monthly_sales = filtered_data.groupby(['Referencia', 'Mes'])['Qtd Vendidas'].sum().reset_index()
+            # Agrupar os dados por mês e referência
+            filtered_data['Mes'] = filtered_data['Data da venda'].dt.to_period('M')
+            monthly_sales = filtered_data.groupby(['Referencia', 'Mes'])['Qtd Vendidas'].sum().reset_index()
 
-        # Calcular a média mensal por referência considerando o número total de meses no período de análise
-        total_sales = filtered_data.groupby('Referencia')['Qtd Vendidas'].sum().reset_index()
-        total_sales.columns = ['Referencia', 'Vendas totais']
-        total_sales['Qtd média mes'] = total_sales['Vendas totais'] / num_months
+            # Calcular a média mensal por referência considerando o número total de meses no período de análise
+            total_sales = filtered_data.groupby('Referencia')['Qtd Vendidas'].sum().reset_index()
+            total_sales.columns = ['Referencia', 'Vendas totais']
+            total_sales['Qtd média mes'] = total_sales['Vendas totais'] / num_months
 
-        # Identificar meses com vendas inferiores à média menos o valor negativo
-        total_sales['Meses < média - diferença'] = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
+            # Identificar meses com vendas inferiores à média menos o valor negativo
+            total_sales['Meses < média - diferença'] = get_months_below_threshold(monthly_sales, total_sales, threshold_diff)
 
-        # Exibir o resultado completo
-        st.write("Média mensal de vendas por referência e vendas totais:")
-        st.dataframe(total_sales)
+            # Exibir o resultado completo
+            st.write("Média mensal de vendas por referência e vendas totais:")
+            st.dataframe(total_sales)
 
-        # Exportar os resultados para um arquivo CSV
-        csv = total_sales.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Baixar resultados como CSV",
-            data=csv,
-            file_name='average_monthly_sales_with_totals_and_analysis.csv',
-            mime='text/csv',
-        )
+            # Exportar os resultados para um arquivo CSV
+            csv = total_sales.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Baixar resultados como CSV",
+                data=csv,
+                file_name='average_monthly_sales_with_totals_and_analysis.csv',
+                mime='text/csv',
+            )
