@@ -18,7 +18,7 @@ def load_and_combine_data(zip_file_path):
                         'DataDoc': 'Data da venda'
                     }
                     # Ajustar colunas relevantes conforme disponível
-                    relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Zona'] if col in df.columns]
+                    relevant_columns = [col for col in ['Ref', 'Quantidade', 'DataDoc', 'Marca', 'Familia', 'LinhaProduto', 'Zona', 'PrecoVenda'] if col in df.columns]
                     df = df[relevant_columns]
                     df.rename(columns=rename_dict, inplace=True)
                     # Converter a coluna de data para datetime se existir
@@ -27,6 +27,10 @@ def load_and_combine_data(zip_file_path):
                     # Converter a coluna de quantidade para numérico, lidando com separadores de milhar
                     if 'Qtd Vendidas' in df.columns:
                         df['Qtd Vendidas'] = df['Qtd Vendidas'].astype(str).str.replace(',', '.').astype(float)
+                    if 'PrecoVenda' in df.columns:
+                        df['PrecoVenda'] = df['PrecoVenda'].astype(str).str.replace(',', '.').astype(float)
+                        # Ajustar a quantidade para negativa se o PrecoVenda for negativo
+                        df.loc[df['PrecoVenda'] < 0, 'Qtd Vendidas'] *= -1
                     data_frames.append(df)
     combined_data = pd.concat(data_frames, ignore_index=True)
     return combined_data
